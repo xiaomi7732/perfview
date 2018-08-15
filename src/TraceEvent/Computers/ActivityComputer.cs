@@ -121,6 +121,21 @@ namespace Microsoft.Diagnostics.Tracing
                 OnStart(data, id);
             };
 
+
+            // System.Threading.ThreadPool.QueueUserWorkItem support.  
+            fxParser.ThreadPoolEnqueueWork += delegate (ThreadPoolEnqueueWorkArgs data)
+            {
+                OnCreated(data, GetClrRawID(data, (ulong)data.workID), TraceActivity.ActivityKind.ClrThreadPool);
+            };
+            fxParser.ThreadPoolDequeueWork += delegate (ThreadPoolDequeueWorkArgs data)
+            {
+                OnStart(data, GetClrRawID(data, (ulong)data.workID));
+            };
+            m_source.Clr.ThreadPoolWorkerThreadWait += delegate (ThreadPoolWorkerThreadTraceData data)
+            {
+                AutoRestart(data, data.Thread());
+            };
+
             // .NET Network thread pool support 
             m_source.Clr.ThreadPoolIOEnqueue += delegate (ThreadPoolIOWorkEnqueueTraceData data)
             {
